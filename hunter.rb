@@ -10,8 +10,18 @@ require "./lib/univ"
 # end
 #
 
-books = UnivLab::univbooks(27,1)
+# books = UnivLab::univbooks(27,1)
+#
+# CSV.open("univbooks.csv", "wb") do |csv|
+#   books.each { |book| csv << book }
+# end
 
-CSV.open("univbooks.csv", "wb") do |csv|
-  books.each { |book| csv << book }
+animals = []
+CSV.foreach("animals.csv") do |row|
+  animal = row[1]
+  animals << row if animal.split.length <= 2
+end
+
+CSV.open("animals_filter_name_2.csv", "wb") do |csv|
+  animals.each { |animal| csv << animal }
 end
