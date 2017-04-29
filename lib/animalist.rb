@@ -20,6 +20,6 @@ module Animalist
   end
 
   def self.animalist(n, sleep_time=0)
-    [*0..n].map { |i| sleep(sleep_time) ; make_animalist($animals_url + i.to_s)}.reduce(:+)
+    [*0..n].map { |i| sleep(sleep_time) ; make_animalist($animals_url + (i*20).to_s)}.reduce(:+)
   end
 end
