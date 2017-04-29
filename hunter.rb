@@ -12,32 +12,60 @@ class String
       return false
     end
   end
+
+  def chars?
+    self.split("").map{|x| ([*"a".."z"] + [*"A".."Z"] + [" "]).include?(x)}.reduce(:&)
+  end
 end
 
-animals = Animalist::animalist(61,1)
+subcmd = ARGV[0]
+animals = []
+case subcmd
+when "animalist"
+  animals = Animalist::animalist(61,1)
 
-CSV.open("animals.csv", "wb") do |csv|
-  animals.select{|x| x[0].utf8?}.each{|animal| csv << animal}
+  CSV.open("animals.csv", "wb") do |csv|
+    animals.select{|x| x[0].utf8?}.each{|animal| csv << animal}
+  end
+when "univbooks"
+  books = UnivLab::univbooks(27,1)
+
+  CSV.open("univbooks.csv", "wb") do |csv|
+    books.each { |book| csv << book }
+  end
+when "filter"
+  file_name = ARGV[1] == nil ? "animals.csv" : ARGV[1]
+  char_len = ARGV[2] == nil ? 10 : ARGV[2].to_i
+  CSV.foreach(file_name) do |row|
+    animal = row[1].split
+    # animals << animal.map(&:downcase) if animal.length <= 2 && animal.join("").chars?
+    animals << [animal.join("").downcase, row[0], row[2]] if animal.length <= 2 && animal.join("").chars?
+  end
+  CSV.open("animals_filter.csv", "wb") do |csv|
+    animals.select{|x| x[0].length <= char_len}.uniq{|x| x[0]}.sort.each{|animal| csv << animal}
+  end
+when "filter_stdout"
+  file_name = ARGV[1] == nil ? "animals.csv" : ARGV[1]
+  char_len = ARGV[2] == nil ? 10 : ARGV[2].to_i
+  CSV.foreach(file_name) do |row|
+    animal = row[1].split
+    animals << animal if animal.length <= 2 && animal.join("").chars?
+  end
+  puts animals.map{|x| x.join("").downcase}.select{|x| x.length <= 10}.uniq.sort
+when "chars_stdout"
+  file_name = ARGV[1] == nil ? "animals.csv" : ARGV[1]
+  char_len = ARGV[2] == nil ? 10 : ARGV[2].to_i
+  CSV.foreach(file_name) do |row|
+    animal = row[1].split
+    animals << animal if animal.length <= 2 && animal.join("").chars?
+  end
+  tmp = animals.flatten.sort
+  puts tmp.uniq.map {|x| [tmp.select{|y| x == y}.length, x]}.sort{|x,y| y <=> x}.select{|x| x[0] > 1}.map{|x| x.to_s}
+else
+  puts "#{subcmd} is no much subcommand."
 end
 
 
-# books = UnivLab::univbooks(27,1)
-#
-# CSV.open("univbooks.csv", "wb") do |csv|
-#   books.each { |book| csv << book }
-# end
-
-# animals = []
-# CSV.foreach("animals.csv") do |row|
-#   animal = row[1].split
-#   animals << [animal.join("").downcase, row[0], row[2]] if animal.length <= 2
-# end
-#
-# CSV.open("animals_filter_lower.csv", "wb") do |csv|
-#   animals.select do |name, title, ref|
-#     name.split("").map{|x| [*"a".."z"].include?(x)}.reduce(:&)
-#   end.each{|animal| csv << animal}
-# end
 
 # url = 'https://www.oreilly.co.jp/catalog/'
 # charset = nil
